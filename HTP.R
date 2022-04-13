@@ -1,11 +1,11 @@
 # HTP.m
 # Basic implementation of the Hard Thresholding Pursuit algorithm
-# Find the s-sparse solution of the underdetermined mXN linear system Ax=y 
+# Find the s-sparse solution of the underdetermined pX(p+q) linear system Ax=y 
 #
-# Usage: [x,S,NormRes,NbIter] = HTP(y,A,s,MaxNbIter,mu,x0,TolRes,Warnings,Eps)
+# Usage: [x,S,NormRes,NbIter] = HTP(Gamma,gamma,s,MaxNbIter,mu,x0,TolRes,Warnings,Eps)
 #
-# y: mx1 measurement vector
-# A: mxN measurement matrix
+# Gamma: px1 measurement vector
+# gamma: pxq measurement matrix
 # s: sparsity level
 # MaxNbIter: number of iterations not to be exceeded (optional, default=500)
 # mu: step factor of A%*%(y-Ax) in the support-identification step (optional, default=1)
@@ -26,22 +26,31 @@
 # Send comments to simon.foucart@centraliens.net
 
 
-HTP <- function(y,A,s,MaxNbIter=500,mu=1,x0,TolRes=1e-4,Warnings='On',Eps=1e-8){
+HTP <- function(Gamma,gamma,MaxNbIter=500,mu=1,x0,TolRes=1e-4,Warnings='On',Eps=1e-8){
 
-N = ncol(A)
+p = nrow(gamma)
+q = ncol(gamma)
 ## set the default values
 if(x0=NULL){
-  x0=rep(0,N)
-  S0=1:s
+  x0=c(rep(1,q),rep(0,p))
+  S0=c(1:q, q + 1:s)
 }
 
+## renormalization of gamma
+d=diag(1,q);
+for(j in 1:q){
+  d(j)=1/(norm(gamma[,j]))
+} 
 
+gamma0=gamma*diag(d)
+
+A=cbind(gamma0,diag(1,p))
 
 
 ## define auxiliary quantities
 B = t(A) %*% A 
-z = t(A) %*% y 
-S0 = order(abs(x0),decreasing=TRUE)[1:s]
+z = t(A) %*%gamma 
+S0 = c(1:q, q+ order(abs(x0[-(1:q)]),decreasing=TRUE)[1:s])
 
 
 ## initialization
@@ -54,17 +63,17 @@ if(mu=='NHTP') {
 else  Mu=mu 
 
 v=x+Mu%*%g  
-absv=abs(v)  
-zero_idx=which(absv<Eps%*%max(absv)) 
-absv(zero_idx)=rep(0,length(zero_idx)) 
-Snew=order(abs(absv),decreasing=TRUE)[1:s] 
-xnew=rep(0,N) 
-xnew[Snew]=solve(A[,Snew],y )
+absv=abs(v[-(1:q)]) 
+zero_idx=q+which(absv<Eps%*%max(absv)) 
+absv[zero_idx]=rep(0,length(zero_idx)) 
+Snew=c(1:q, q + order(abs(absv),decreasing=TRUE)[1:s]) 
+xnew=rep(0,p+q) 
+xnew[Snew]=solve(A[,Snew],Gamma )
 NbIter=1 
 
 
 ## main loop
-while ( (sum(S==Snew)<s) && (NbIter<MaxNbIter) ){
+while ( (sum(S==Snew)<s+q) && (NbIter<MaxNbIter) ){
   x=xnew 
   S=Snew 
   g=z-B%*%x 
@@ -73,36 +82,35 @@ while ( (sum(S==Snew)<s) && (NbIter<MaxNbIter) ){
   else Mu=mu 
  
   v=x+Mu%*%g  
-  absv=abs(v)  
-  zero_idx=which(absv<Eps%*%max(absv)) 
-  absv[zero_idx]=rep(0,length(zero_idx)) 
+  absv=abs(v[-(1:q)]) 
+  zero_idx=q+which(absv<Eps%*%max(absv)) 
+  absv[zero_idx]=rep(0,length(zero_idx))
   
-  Snew=order(absv,decreasing=TRUE)[1:s]  
-  xnew=rep(0,N) 
-  xnew[Snew]=solve(A[,Snew],y )
+  Snew=c(1:q, q + order(abs(absv),decreasing=TRUE)[1:s]) 
+  xnew=rep(0,p+q) 
+  xnew[Snew]=solve(A[,Snew],Gamma )
   NbIter=NbIter+1 
 }
   
 
 ## outputs
-NormRes=norm(y-A%*%xnew)
+NormRes=norm(Gamma-A%*%xnew)
 if(Warnings=='On'){
-  if(sum(S==Snew)<s) {
+  if(sum(S==Snew)<s+q) {
     cat('Warning: HTP did not converge when using a number of iterations =', MaxNbIter,"\n")
   }
   else {
-    if (NormRes>TolRes%*%sqrt(sum(y^2))){
+    if (NormRes>TolRes%*%sqrt(sum(Gamma^2))){
       disp(cat('Warning: HTP converged to an incorrect solution (norm of residual =', NormRes,')')) 
     }
   }
 }
 
 
-x=xnew 
+x=cbind(diag(d),diag(1,p)) %*% xnew
 S=Snew 
 return(list(x=x,
             S=S,
             NormRes=NormRes,
             NbIter=NbIter))
-
 }
