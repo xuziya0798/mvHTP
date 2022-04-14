@@ -150,10 +150,11 @@ mvHTP.Vhat <- function(Y,D,W,pz,method,intercept=FALSE,relevant,tuning) {
   # Error check
   if(length(Shat) < q){
     warning("VHat Warning: No enough relevant IVs estimated. This may be due to weak IVs or identification condition not being met. Use more robust methods.")
-    warning("Defaulting to all IVs being valid")
-    Vhat = Shat
+    warning("Defaulting to all IVs being relevant")
+    Shat = 1:pz
   }
   
+  #=========== estimate V* ===========
   list = HTP(Gammahat[Shat],gammahat[Shat,],1000)
   supp = (list$S)[-(1:q)]-q
   Vhat = (1:pz)[-supp]
