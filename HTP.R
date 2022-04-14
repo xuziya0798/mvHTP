@@ -1,6 +1,6 @@
-# HTP.m
-# Basic implementation of the Hard Thresholding Pursuit algorithm
-# Find the s-sparse solution of the underdetermined pX(p+q) linear system Ax=y 
+# HTP.R
+# Hard Thresholding Pursuit algorithm applied in MVMR summary statistics
+# Find the s-sparse solution of the underdetermined px(p+q) linear system Ax=y 
 #
 # Usage: [x,S,NormRes,NbIter] = HTP(Gamma,gamma,s,MaxNbIter,mu,x0,TolRes,Warnings,Eps)
 #
@@ -21,12 +21,12 @@
 # NbIter: the number of iterations performed until stationary outputs are reached
 #         if stationary outputs are not reached, a warning is displayed and NbIter takes MaxNbIter 
 #
-# Written by Simon Foucart in August 2010, updated in February 2011
-# Code proposed and used in the paper "Hard Thresholding Pursuit: an algorithm for Compressive Sensing"
-# Send comments to simon.foucart@centraliens.net
+# Translate the original matlab code, written by Simon Foucart in August 2010, to R
 
 
-HTP <- function(Gamma,gamma,MaxNbIter=500,mu=1,x0,TolRes=1e-4,Warnings='On',Eps=1e-8){
+
+
+HTP <- function(Gamma,gamma,MaxNbIter=500,mu=1/3,x0,TolRes=1e-4,Warnings='On',Eps=1e-8){
 
 p = nrow(gamma)
 q = ncol(gamma)
