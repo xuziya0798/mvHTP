@@ -26,30 +26,30 @@
 
 
 
-HTP <- function(Gamma,gamma,MaxNbIter=500,mu=1/3,x0,TolRes=1e-4,Warnings='On',Eps=1e-8){
+HTP <- function(Gamma,gamma,MaxNbIter=500,mu=1/3,x0=NULL,TolRes=1e-4,Warnings='On',Eps=1e-8){
 
 p = nrow(gamma)
 q = ncol(gamma)
 ## set the default values
-if(x0=NULL){
+if(is.null(x0)){
   x0=c(rep(1,q),rep(0,p))
   S0=c(1:q, q + 1:s)
 }
 
 ## renormalization of gamma
-d=diag(1,q);
+d=rep(1,q);
 for(j in 1:q){
-  d(j)=1/(norm(gamma[,j]))
+  d[j]=1/sqrt(sum(gamma[,j]^2))
 } 
 
-gamma0=gamma*diag(d)
+gamma0=gamma %*% diag(d)
 
 A=cbind(gamma0,diag(1,p))
 
 
 ## define auxiliary quantities
 B = t(A) %*% A 
-z = t(A) %*%gamma 
+z = t(A) %*% Gamma 
 S0 = c(1:q, q+ order(abs(x0[-(1:q)]),decreasing=TRUE)[1:s])
 
 
@@ -58,17 +58,17 @@ x=x0
 S=S0  
 g=z-B%*%x 
 if(mu=='NHTP') {
-  Mu=(norm(g[S])/norm(A[,S]%*%g[S]))^2 
+  Mu=(norm(g[S])/norm(A[,S]*g[S]))^2 
 }
 else  Mu=mu 
 
-v=x+Mu%*%g  
+v=x+Mu*g  
 absv=abs(v[-(1:q)]) 
-zero_idx=q+which(absv<Eps%*%max(absv)) 
+zero_idx=q+which(absv<Eps*max(absv)) 
 absv[zero_idx]=rep(0,length(zero_idx)) 
 Snew=c(1:q, q + order(abs(absv),decreasing=TRUE)[1:s]) 
 xnew=rep(0,p+q) 
-xnew[Snew]=solve(A[,Snew],Gamma )
+xnew[Snew]=solve(t(A[,Snew])%*%A[,Snew],t(A[,Snew])%*%Gamma )
 NbIter=1 
 
 
@@ -78,17 +78,17 @@ while ( (sum(S==Snew)<s+q) && (NbIter<MaxNbIter) ){
   S=Snew 
   g=z-B%*%x 
   
-  if (mu=='NHTP') Mu=(norm(g[S])/norm(A[,S]%*%g[S]))^2 
+  if (mu=='NHTP') Mu=(norm(g[S])/norm(A[,S]*g[S]))^2 
   else Mu=mu 
  
-  v=x+Mu%*%g  
+  v=x+Mu*g  
   absv=abs(v[-(1:q)]) 
-  zero_idx=q+which(absv<Eps%*%max(absv)) 
+  zero_idx=q+which(absv<Eps*max(absv)) 
   absv[zero_idx]=rep(0,length(zero_idx))
   
   Snew=c(1:q, q + order(abs(absv),decreasing=TRUE)[1:s]) 
   xnew=rep(0,p+q) 
-  xnew[Snew]=solve(A[,Snew],Gamma )
+  xnew[Snew]=solve(t(A[,Snew])%*%A[,Snew],t(A[,Snew])%*%Gamma )
   NbIter=NbIter+1 
 }
   
@@ -100,14 +100,14 @@ if(Warnings=='On'){
     cat('Warning: HTP did not converge when using a number of iterations =', MaxNbIter,"\n")
   }
   else {
-    if (NormRes>TolRes%*%sqrt(sum(Gamma^2))){
-      disp(cat('Warning: HTP converged to an incorrect solution (norm of residual =', NormRes,')')) 
+    if (NormRes>TolRes*sqrt(sum(Gamma^2))){
+      cat('Warning: HTP converged to an incorrect solution (norm of residual =', NormRes,')')
     }
   }
 }
 
-
-x=cbind(diag(d),diag(1,p)) %*% xnew
+x=xnew
+x[1:q]=diag(d) %*% xnew[1:q]
 S=Snew 
 return(list(x=x,
             S=S,

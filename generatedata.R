@@ -1,4 +1,4 @@
-generatedata <- function(n,r,beta,gamma,pi,phi=NULL,psi=NULL,relevant="union"){
+generatedata <- function(n,r,beta,gamma,pi,phi=NULL,psi=NULL){
   #=====generate data=============
   set.seed(r)
   q=length(beta)
@@ -52,14 +52,10 @@ generatedata <- function(n,r,beta,gamma,pi,phi=NULL,psi=NULL,relevant="union"){
     Y=D%*%beta+Z%*%pi+e[,1]
   }
   S=1:pz
-  if(relevant=="intersect"){
-    S=S[(apply(gamma==0,1,sum))==0]
-    V=S[pi[S]==0]
-  }
-  if(relevant=="union"){
+  
     S=S[(apply(gamma!=0,1,sum))>0]
     V=S[pi[S]==0]
-  }
+
   
   return(list(Y=Y,Z=Z,X=X,D=D,S=S,V=V))
 }

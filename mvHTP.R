@@ -12,6 +12,7 @@
 # intercept: whether or not introduce a constant in regression
 # alpha: confidence level
 # tuning: parameter to adjust threshoulding level in first stage
+# oracle: whether or not know the the true S and V
 # V: true valid IVs
 # S: true relevant IVs
 #
@@ -23,7 +24,7 @@
 #
 
 
-mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,V=NULL,S=NULL){
+mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,oracle=FALSE,V=NULL,S=NULL){
   # Check and Clean Input Type #
   # Check Y
   stopifnot(!missing(Y),(is.numeric(Y) || is.logical(Y)),(is.matrix(Y) || is.data.frame(Y)) && ncol(Y) == 1)
@@ -46,7 +47,7 @@ mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,V=NULL,S=NULL){
   stopifnot(!missing(s),is.numeric(s) )
   
   # Check X, if present
-  if(!missing(X)) {
+  if(!missing(X) && !is.null(X)) {
     stopifnot((is.numeric(X) || is.logical(X)),is.matrix(X) && nrow(X) == nrow(Z))
     stopifnot(all(!is.na(X)))
     
@@ -60,13 +61,13 @@ mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,V=NULL,S=NULL){
   stopifnot(is.logical(intercept))
   stopifnot(is.numeric(alpha),length(alpha) == 1,alpha <= 1,alpha >= 0)
   stopifnot(is.numeric(tuning),length(tuning) == 1, tuning >=2)
-  stopifnot(is.character(method))
+
   # Derive Inputs for TSHT
   n=length(Y)
   pz=ncol(Z)
   p=ncol(W)
   q=length(D)/n
-  if(method=="ora"){
+  if(oracle==TRUE){
     stopifnot(!missing(S) && !missing(V))
     Vhat=V
     Shat=S
@@ -137,8 +138,8 @@ mvHTP.Vhat <- function(Y,D,W,pz,method,intercept=FALSE,relevant,tuning) {
   
   #==========threshold gamma===============
   
-    thresh=sqrt(diag(solve(Sigmahat)) %*% t(diag(Thetahat22)[1:pz]))*sqrt(tuning*log(n)/n)
-    Sflag=(abs(gammahat)>threshj)
+    thresh=sqrt(diag(solve(Sigmahat))[1:pz] %*% t(diag(Omegahat22)))*sqrt(tuning*log(n)/n)
+    Sflag=(abs(gammahat)>thresh)
     gammatilde=Sflag*gammahat
 
   
