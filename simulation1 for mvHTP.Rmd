@@ -1,0 +1,92 @@
+---
+title: "simulation1 for mvHTP"
+author: "xuziya"
+date: "2022/4/14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## load functions
+
+```{r }
+source('E:/rmu_study/project/mvHTP/generatedata.R')
+source('E:/rmu_study/project/mvHTP/HTP.R')
+source('E:/rmu_study/project/mvHTP/mvHTP.R')
+
+```
+
+
+
+
+
+## basic setting
+```{r }
+q=2
+pz=20;px=0
+p=px+pz
+beta=c(1,1)
+gamma=matrix(rnorm(pz*q),pz,q)
+
+rho=0.5
+pi=rep(0,pz);pi[1:5]=rho
+
+```
+
+###test part
+
+A simple test to check whether HTP can recover the support. We may need a cross-validation function to choose s, but treat s as tuning parameter at present
+```{r}
+intercept=FALSE
+n=500
+r=1
+s=10
+tuning=30
+Gamma = gamma%*%beta +pi
+
+HTP(Gamma,gamma,s)
+HTP(Gamma,gamma,5)
+HTP(Gamma,gamma,15)
+HTP(Gamma,gamma,18) ## it voilates p-2s>q
+```
+
+
+
+
+this is runaverage function for R times in tn sample size
+```{r,echo=FALSE}
+
+runaverage <- function(R,tn,beta,gamma,pi,s,intercept=FALSE,tuning=30){
+  tmethod = c("oracle","naive 2SLS","OLS","mvHTP") # may add Jack method like egger regressioin
+  TP=FP=array(dim = c(length(tn),R,length(tmethod)))
+  error=coverage=len=array(dim = c(length(tn),q,R,length(tmethod)))
+  
+  for (k in 1:length(tn)) {
+    n=tn[k]
+    for (r in 1:R) {
+      data=generatedata(n,r,beta,gamma,pi)
+      for (i in 1:length(tmethod)) {
+        method=tmethod[i]
+        if(method=="mvHTP"){
+          res=mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=s,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+        Vhat=as.vector(res$Vhat)
+        TP[k,r,i]=length(intersect(data$V,res$Vhat))
+        FP[k,r,i]=length(res$Vhat)-TP[k,r,i]
+        #FN[r,i]=length(V)-TP[r,i]
+        #TN[r,i]=length(Shat)-length(Vhat)-FN[r,i]
+        error[k,,r,i]=(beta-res$betahat)
+        coverage[k,,r,i]=((beta<=(res$ci)[,2])+(beta>=(res$ci)[,1])==2)
+        len[k,,r,i]=(res$ci)[,2]-(res$ci)[,1]
+        }
+      }
+        
+      }
+    }
+  return(list(TP=TP,FP=FP,error=error,coverage=coverage,len=len))
+}
+
+
+
+```
