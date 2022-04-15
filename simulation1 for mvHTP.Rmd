@@ -25,13 +25,13 @@ source('E:/rmu_study/project/mvHTP/mvHTP.R')
 ## basic setting
 ```{r }
 q=2
-pz=20;px=0
+pz=50;px=0
 p=px+pz
 beta=c(1,1)
 gamma=matrix(rnorm(pz*q),pz,q)
 
 rho=0.5
-pi=rep(0,pz);pi[1:5]=rho
+pi=rep(0,pz);pi[1:5]=rho #sbar=5
 
 ```
 
@@ -40,19 +40,43 @@ pi=rep(0,pz);pi[1:5]=rho
 A simple test to check whether HTP can recover the support. We may need a cross-validation function to choose s, but treat s as tuning parameter at present
 ```{r}
 intercept=FALSE
-n=500
-r=1
-s=10
+
+s=16 #to satisfy sbar+2s<p,q+2s<p and s>(2+M/m)sbar, need 15<s<23
 tuning=30
 Gamma = gamma%*%beta +pi
 
 HTP(Gamma,gamma,s)
-HTP(Gamma,gamma,5)
-HTP(Gamma,gamma,15)
-HTP(Gamma,gamma,18) ## it voilates p-2s>q
+HTP(Gamma,gamma,18)
+HTP(Gamma,gamma,20) #successfully recover 
+HTP(Gamma,gamma,22) #successfully recover
+
 ```
+```{r}
+r=415
+n=400 # n>> plogq(p+2s) at least>p^(3/2)=354
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=22,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+
+n=500
+data=generatedata(n,r,beta,gamma,pi)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=22,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+
+n=600
+data=generatedata(n,r,beta,gamma,pi)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=22,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
 
 
+n=700
+data=generatedata(n,r,beta,gamma,pi)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+
+n=800
+data=generatedata(n,r,beta,gamma,pi)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+```
+Note at this time $s>3\bar{s}$ and $2s+\bar{s}\leq p$, then at most 1/7 IVs are invalid, which actually doesn't have much influence.
 
 
 this is runaverage function for R times in tn sample size
