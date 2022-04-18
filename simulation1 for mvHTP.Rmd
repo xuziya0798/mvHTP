@@ -25,7 +25,7 @@ source('E:/rmu_study/project/mvHTP/mvHTP.R')
 ## basic setting
 ```{r }
 q=2
-pz=50;px=0
+pz=40;px=0
 p=px+pz
 beta=c(1,1)
 gamma=matrix(rnorm(pz*q),pz,q)
@@ -41,76 +41,76 @@ A simple test to check whether HTP can recover the support. We may need a cross-
 ```{r}
 intercept=FALSE
 
-s=16 #to satisfy sbar+2s<p,q+2s<p and s>(2+M/m)sbar, need 15<s<23
+s=16 #to satisfy sbar+2s<p,q+2s<p and s>(2+M/m)sbar, need 15<s<18
 tuning=30
 Gamma = gamma%*%beta +pi
 
 HTP(Gamma,gamma,s)
-HTP(Gamma,gamma,18)
+HTP(Gamma,gamma,17) #successfully recover
+
+# more large s to show the condition is not sharp
+HTP(Gamma,gamma,18) #successfully recover 
 HTP(Gamma,gamma,20) #successfully recover 
 HTP(Gamma,gamma,22) #successfully recover
 
 ```
 ```{r}
-r=415
+r=1
 n=400 # n>> plogq(p+2s) at least>p^(3/2)=354
-mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
-mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=22,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
-
-n=500
 data=generatedata(n,r,beta,gamma,pi)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=17,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
 mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
-mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=22,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
 
 n=600
 data=generatedata(n,r,beta,gamma,pi)
-mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
-mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=22,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
-
-
-n=700
-data=generatedata(n,r,beta,gamma,pi)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=17,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
 mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
 
 n=800
 data=generatedata(n,r,beta,gamma,pi)
+mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=17,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
 mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=20,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+
 ```
-Note at this time $s>3\bar{s}$ and $2s+\bar{s}\leq p$, then at most 1/7 IVs are invalid, which actually doesn't have much influence.
+Note at this time $s>3\bar{s}$ and $2s+\bar{s}\leq p$, then at most 1/7 IVs are invalid, which actually doesn't have much influence. But we should notice that the condition is not neccessary.
 
 
 this is runaverage function for R times in tn sample size
 ```{r,echo=FALSE}
 
-runaverage <- function(R,tn,beta,gamma,pi,s,intercept=FALSE,tuning=30){
-  tmethod = c("oracle","naive 2SLS","OLS","mvHTP") # may add Jack method like egger regressioin
-  TP=FP=array(dim = c(length(tn),R,length(tmethod)))
-  error=coverage=len=array(dim = c(length(tn),q,R,length(tmethod)))
+runaverage <- function(R,tn,beta,gamma,pi,s,OutputRes=FALSE,intercept=FALSE,tuning=30){
+  #tmethod = c("oracle","naive 2SLS","OLS","mvHTP") # may add Jack method like egger regressioin
+  TP=FP=array(dim = c(length(tn),R))
+  error=coverage=len=array(dim = c(length(tn),q,R))
   
   for (k in 1:length(tn)) {
     n=tn[k]
     for (r in 1:R) {
       data=generatedata(n,r,beta,gamma,pi)
-      for (i in 1:length(tmethod)) {
-        method=tmethod[i]
-        if(method=="mvHTP"){
-          res=mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=s,intercept=intercept,tuning = tuning,V=data$V,S=data$S)
+          res=mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=s,intercept=intercept,tuning = tuning,OutputRes=OutputRes,V=data$V,S=data$S)
         Vhat=as.vector(res$Vhat)
-        TP[k,r,i]=length(intersect(data$V,res$Vhat))
-        FP[k,r,i]=length(res$Vhat)-TP[k,r,i]
-        #FN[r,i]=length(V)-TP[r,i]
-        #TN[r,i]=length(Shat)-length(Vhat)-FN[r,i]
-        error[k,,r,i]=(beta-res$betahat)
-        coverage[k,,r,i]=((beta<=(res$ci)[,2])+(beta>=(res$ci)[,1])==2)
-        len[k,,r,i]=(res$ci)[,2]-(res$ci)[,1]
-        }
-      }
-        
-      }
+        TP[k,r]=length(intersect(data$V,res$Vhat))
+        FP[k,r]=length(res$Vhat)-TP[k,r ]
+        #FN[r ]=length(V)-TP[r ]
+        #TN[r ]=length(Shat)-length(Vhat)-FN[r ]
+        error[k,,r]=(beta-res$betahat)
+        coverage[k,,r]=((beta<=(res$ci)[,2])+(beta>=(res$ci)[,1])==2)
+        len[k,,r ]=(res$ci)[,2]-(res$ci)[,1]
+    }
     }
   return(list(TP=TP,FP=FP,error=error,coverage=coverage,len=len))
 }
 
 
 
+```
+
+```{r}
+R=500;tn=c(400,600,800);s=20
+list=runaverage(R,tn,beta,gamma,pi,s,intercept=FALSE,tuning=30)
+apply(abs(list$error), c(1,2), mean)
+hist(list$error[1,2,])
+apply(list$coverage, c(1,2), mean)
+apply((list$TP/(list$TP+list$FP)),1,mean)
+apply(list$FP,1,mean)
 ```

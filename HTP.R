@@ -11,8 +11,8 @@
 # mu: step factor of A%*%(y-Ax) in the support-identification step (optional, default=1)
 #     use 'NHTP' for the Normalized Hard Thresholding Pursuit algorithm 
 # x0: initial vector (optional, default=zero)
-# TolRes: tolerance on the Euclidean norm |y-Ax|/|y| of the relative residual (optional, default=1e-4)
-# Warnings: use 'On' to display the warnings, 'No' otherwise (optional, default='On')
+# Warnings: use 'TRUE' to display the warnings, 'FALSE' otherwise 
+# OutputRes: whether or not output the residual |y-Ax| 
 # Eps: thresholding for sending to zero the entries of a vector with magnitude smaller than Eps times the largest entry of the vector in magnitude (optional, default=1e-8)
 #
 # x: an s-sparse vector which is the possible solution of Ax=y
@@ -26,7 +26,7 @@
 
 
 
-HTP <- function(Gamma,gamma,s,MaxNbIter=1000,mu=1/5,x0=NULL,TolRes=1e-4,Warnings='On',Eps=1e-8){
+HTP <- function(Gamma,gamma,s,OutputRes=TRUE,MaxNbIter=1000,mu=1/5,x0=NULL,Warnings=TRUE,Eps=1e-8){
 
 p = nrow(gamma)
 q = ncol(gamma)
@@ -95,16 +95,16 @@ while ( (sum(S==Snew)<s+q) && (NbIter<MaxNbIter) ){
 
 ## outputs
 NormRes=norm(Gamma-A%*%xnew)
-if(Warnings=='On'){
+if(Warnings){
   if(sum(S==Snew)<s+q) {
     cat('Warning: HTP did not converge when using a number of iterations =', MaxNbIter,"\n")
   }
-  else {
-    if (NormRes>TolRes*sqrt(sum(Gamma^2))){
-      cat('norm of residual =', NormRes,"\n")
-    }
-  }
 }
+
+if(OutputRes) {
+      cat('norm of residual =', NormRes,"\n")
+  }
+
 
 x=xnew
 x[1:q]=diag(d) %*% xnew[1:q]

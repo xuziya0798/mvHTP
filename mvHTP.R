@@ -15,6 +15,7 @@
 # oracle: whether or not know the the true S and V
 # V: true valid IVs
 # S: true relevant IVs
+# OutputRes: whether or not output the residuals of HTP.R
 #
 # Shat: estimated relevant IVs
 # Vhat: estimated valid IVs
@@ -24,7 +25,7 @@
 #
 
 
-mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,oracle=FALSE,V=NULL,S=NULL){
+mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,OutputRes=TRUE,oracle=FALSE,V=NULL,S=NULL){
   # Check and Clean Input Type #
   # Check Y
   stopifnot(!missing(Y),(is.numeric(Y) || is.logical(Y)),(is.matrix(Y) || is.data.frame(Y)) && ncol(Y) == 1)
@@ -74,7 +75,7 @@ mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,oracle=FALSE,V=
     
   }else{
     # Estimate Valid IVs
-    SetHats = mvHTP.Vhat(Y,D,W,pz,method,intercept,relevant,tuning)
+    SetHats = mvHTP.Vhat(Y,D,W,pz,s,intercept,OutputRes,tuning)
     Vhat = SetHats$Vhat
     Shat = SetHats$Shat
     
@@ -104,7 +105,7 @@ mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,oracle=FALSE,V=
   
 }
 
-mvHTP.Vhat <- function(Y,D,W,pz,method,intercept=FALSE,relevant,tuning) {
+mvHTP.Vhat <- function(Y,D,W,pz,s,intercept=FALSE,OutputRes=TRUE,tuning=30) {
   # Include intercept
   if(intercept) {
     W = cbind(W,1)
@@ -154,7 +155,7 @@ mvHTP.Vhat <- function(Y,D,W,pz,method,intercept=FALSE,relevant,tuning) {
   }
   
   #=========== estimate V* ===========
-  list = HTP(Gammahat[Shat],gammahat[Shat,],s)
+  list = HTP(Gammahat[Shat],gammahat[Shat,],s,OutputRes)
   supp = (list$S)[-(1:q)]-q
   Vhat = Shat[-supp]
   
