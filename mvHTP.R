@@ -9,7 +9,7 @@
 # Z: Nxpz candidate IVs
 # X: Nxpx corvariates
 # s: sparsity level
-# intercept: whether or not introduce a constant in regression
+# intercept: whether or not introduce a intercept in linear regression
 # alpha: confidence level
 # tuning: parameter to adjust threshoulding level in first stage
 # oracle: whether or not know the the true S and V
@@ -146,8 +146,6 @@ mvHTP.Vhat <- function(Y,D,W,pz,method,intercept=FALSE,relevant,tuning) {
   #========= estimate S* ==============
   Shat=which(apply(Sflag,1,sum)>0) #RESTRICT: ==0
   
-  nS=length(Shat)
-  
   # Error check
   if(length(Shat) < q){
     warning("VHat Warning: No enough relevant IVs estimated. This may be due to weak IVs or identification condition not being met. Use more robust methods.")
@@ -156,9 +154,9 @@ mvHTP.Vhat <- function(Y,D,W,pz,method,intercept=FALSE,relevant,tuning) {
   }
   
   #=========== estimate V* ===========
-  list = HTP(Gammahat[Shat],gammahat[Shat,],1000)
+  list = HTP(Gammahat[Shat],gammahat[Shat,],s)
   supp = (list$S)[-(1:q)]-q
-  Vhat = (1:pz)[-supp]
+  Vhat = Shat[-supp]
   
   # Error check
   if(length(Vhat) < q){

@@ -101,7 +101,7 @@ if(Warnings=='On'){
   }
   else {
     if (NormRes>TolRes*sqrt(sum(Gamma^2))){
-      cat('norm of residual =', NormRes)
+      cat('norm of residual =', NormRes,"\n")
     }
   }
 }
