@@ -26,7 +26,7 @@
 
 
 
-HTP <- function(Gamma,gamma,MaxNbIter=500,mu=1/3,x0=NULL,TolRes=1e-4,Warnings='On',Eps=1e-8){
+HTP <- function(Gamma,gamma,s,MaxNbIter=1000,mu=1/5,x0=NULL,TolRes=1e-4,Warnings='On',Eps=1e-8){
 
 p = nrow(gamma)
 q = ncol(gamma)
@@ -101,7 +101,7 @@ if(Warnings=='On'){
   }
   else {
     if (NormRes>TolRes*sqrt(sum(Gamma^2))){
-      cat('Warning: HTP converged to an incorrect solution (norm of residual =', NormRes,')')
+      cat('norm of residual =', NormRes)
     }
   }
 }
