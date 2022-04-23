@@ -78,7 +78,7 @@ Note at this time $s>3\bar{s}$ and $2s+\bar{s}\leq p$, then at most 1/7 IVs are 
 this is runaverage function for R times in tn sample size
 ```{r,echo=FALSE}
 
-runaverage <- function(R,tn,beta,gamma,pi,s,OutputRes=FALSE,intercept=FALSE,tuning=30){
+runaverage <- function(R,tn,beta,gamma,pi,s,oracle,OutputRes=FALSE,intercept=FALSE,tuning=30){
   #tmethod = c("oracle","naive 2SLS","OLS","mvHTP") # may add Jack method like egger regressioin
   TP=FP=array(dim = c(length(tn),R))
   error=coverage=len=array(dim = c(length(tn),q,R))
@@ -87,7 +87,7 @@ runaverage <- function(R,tn,beta,gamma,pi,s,OutputRes=FALSE,intercept=FALSE,tuni
     n=tn[k]
     for (r in 1:R) {
       data=generatedata(n,r,beta,gamma,pi)
-          res=mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=s,intercept=intercept,tuning = tuning,OutputRes=OutputRes,V=data$V,S=data$S)
+          res=mvHTP(Y=data$Y,D=data$D,Z=data$Z,X=data$X,s=s,intercept=intercept,tuning = tuning,OutputRes=OutputRes,oracle=oracle,V=data$V,S=data$S)
         Vhat=as.vector(res$Vhat)
         TP[k,r]=length(intersect(data$V,res$Vhat))
         FP[k,r]=length(res$Vhat)-TP[k,r ]
@@ -106,11 +106,11 @@ runaverage <- function(R,tn,beta,gamma,pi,s,OutputRes=FALSE,intercept=FALSE,tuni
 ```
 
 ```{r}
-R=500;tn=c(400,600,800);s=20
-list=runaverage(R,tn,beta,gamma,pi,s,intercept=FALSE,tuning=30)
+R=500;tn=c(400,600,800);s=19;oracle=FALSE
+list=runaverage(R,tn,beta,gamma,pi,s,intercept=FALSE,oracle=oracle,tuning=30)
 apply(abs(list$error), c(1,2), mean)
-hist(list$error[1,2,])
+hist(list$error[3,2,],breaks=seq(-0.3,0.3,0.02))
 apply(list$coverage, c(1,2), mean)
 apply((list$TP/(list$TP+list$FP)),1,mean)
-apply(list$FP,1,mean)
+0.95*apply(list$FP==0,1,mean)
 ```

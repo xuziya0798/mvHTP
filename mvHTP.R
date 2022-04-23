@@ -83,8 +83,8 @@ mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,OutputRes=TRUE,
   
   # Obtain 2SLS est, se, and ci
   
-  W=cbind(Z,X)
-  X_=cbind(D,X,Z[,-Vhat])
+  W=cbind(Z[,Shat],X)
+  X_=cbind(D,X,Z[,setdiff(Shat,Vhat)])
   auxreg <-lm.fit(W, X_)
   Xhat = as.matrix(auxreg$fitted.values)
   fit <- lm.fit(Xhat,Y)
@@ -155,6 +155,10 @@ mvHTP.Vhat <- function(Y,D,W,pz,s,intercept=FALSE,OutputRes=TRUE,tuning=30) {
   }
   
   #=========== estimate V* ===========
+  if(s>length(Shat)-q){
+    s=min(length(Shat)-q, as.integer(length(Shat)/2))
+    warning("s is set too large and use the default value instead")
+  } 
   list = HTP(Gammahat[Shat],gammahat[Shat,],s,OutputRes)
   supp = (list$S)[-(1:q)]-q
   Vhat = Shat[-supp]
