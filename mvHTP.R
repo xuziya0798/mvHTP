@@ -105,7 +105,7 @@ mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,OutputRes=TRUE,
   
 }
 
-mvHTP.Vhat <- function(Y,D,W,pz,s,intercept=FALSE,OutputRes=TRUE,tuning=30) {
+mvHTP.Vhat <- function(Y,D,W,pz,s=NULL,intercept=FALSE,OutputRes=TRUE,tuning=30) {
   # Include intercept
   if(intercept) {
     W = cbind(W,1)
@@ -128,7 +128,11 @@ mvHTP.Vhat <- function(Y,D,W,pz,s,intercept=FALSE,OutputRes=TRUE,tuning=30) {
     deltahat[,j]=qr.resid(qrW,D[,j])
   }
   
-  
+  if(is.null(s)){
+    return(list(Gammahat=Gammahat, gammahat=gammahat))
+    stop("No input of s, just return ITT effect.")
+  }
+    
   # compute the covariance of W,delta(residual of D regress on Z)
   
   Sigmahat=1/(n-p)*t(W)%*%W
@@ -160,8 +164,15 @@ mvHTP.Vhat <- function(Y,D,W,pz,s,intercept=FALSE,OutputRes=TRUE,tuning=30) {
     warning("s is set too large and use the default value instead")
   } 
   list = HTP(Gammahat[Shat],gammahat[Shat,],s,OutputRes)
-  supp = (list$S)[-(1:q)]-q
-  Vhat = Shat[-supp]
+  betahat = (list$x)[1:q]
+  pihat = Gammahat
+  pihat[Shat]=(list$x)[-(1:q)]
+  
+  
+  # threshold pi
+  select=which(abs(pihat[Shat])<tuning*sqrt((q+2*s)*log(pz)/n))
+  
+  Vhat = Shat[select]
   
   # Error check
   if(length(Vhat) < q){
@@ -170,6 +181,6 @@ mvHTP.Vhat <- function(Y,D,W,pz,s,intercept=FALSE,OutputRes=TRUE,tuning=30) {
     Vhat = Shat
   }
   
-  return(list(Vhat = Vhat,Shat=Shat))
+  return(list(Vhat = Vhat,Shat=Shat,gammahat=gammatilde,Gammahat=Gammahat,betahat=betahat,pihat=pihat))
   
 }
