@@ -53,7 +53,8 @@ generatedata <- function(n,r,beta,gamma,pi,phi=NULL,psi=NULL){
   }
   S=1:pz
   
-    S=S[(apply(gamma!=0,1,sum))>0]
+  if(q==1) S[gamma!=0]
+  else S=S[(apply(gamma!=0,1,sum))>0]
     V=S[pi[S]==0]
 
   
