@@ -160,8 +160,9 @@ mvHTP.Vhat <- function(Y,D,W,pz,s=NULL,intercept=FALSE,OutputRes=TRUE,tuning=30)
   
   #=========== estimate V* ===========
   if(s>length(Shat)-q){
-    s=min(length(Shat)-q, as.integer(length(Shat)/2))
-    warning("s is set too large and use the default value instead")
+    #s=min(length(Shat)-q, as.integer(length(Shat)/2))
+    s=length(Shat)-q
+    warning("s is set too large and use the default value instead \n")
   } 
   list = HTP(Gammahat[Shat],gammahat[Shat,],s,OutputRes)
   betahat = (list$x)[1:q]

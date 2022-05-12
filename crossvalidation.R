@@ -1,4 +1,4 @@
-cv <- function(Y,D,Z,X,lambdaSeq,K = 10,intercept=FALSE) {
+cv <- function(Y,D,Z,X,lambdaSeq=NA,K = 10,intercept=FALSE) {
   # Include intercept
   if(!missing(X) && !is.null(X)) {
     stopifnot((is.numeric(X) || is.logical(X)),is.matrix(X) && nrow(X) == nrow(Z))
@@ -19,7 +19,6 @@ cv <- function(Y,D,Z,X,lambdaSeq,K = 10,intercept=FALSE) {
   q = length(D)/n
   
   if(missing(lambdaSeq) || all(is.na(lambdaSeq))) {
-    warning("Lambda sequence not provided; defaulting to using defaulted value")
     lambdaSeq=0:(pz-q)
     
   }
@@ -58,6 +57,6 @@ cv <- function(Y,D,Z,X,lambdaSeq,K = 10,intercept=FALSE) {
     mincv.index = which.min(cv); onestderrorbound = cv[mincv.index] + stderror[mincv.index]
     onestdLambda = max(lambdaSeq[which( (cv <= onestderrorbound) & (cv >= cv[mincv.index]))]) #this is never empty vector 
     
-    return(list(lambda = onestdLambda, estCVError = cv[which(onestdLambda == lambdaSeq)]))
+    return(list(s = onestdLambda, estCVError = cv[which(onestdLambda == lambdaSeq)]))
   }
   }
