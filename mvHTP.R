@@ -90,9 +90,11 @@ mvHTP <- function(Y,D,Z,X,s,intercept=FALSE,alpha=0.05,tuning=30,OutputRes=TRUE,
   fit <- lm.fit(Xhat,Y)
   ok <- which(!is.na(fit$coefficients))
   yhat <- drop(X_[, ok, drop = FALSE] %*% fit$coefficients[ok])
-  res <- Y - yhat
-  s2 <- sqrt(sum(res^2)/fit$df.residual)
+  #res <- Y - yhat
+  #s2 <- sqrt(sum(res^2)/fit$df.residual)
   betatilde = (fit$coefficients)[1:q]
+  res= Y - X_%*% fit$coefficients
+  s2 = sqrt(sum(res^2)/fit$df.residual)
   
   
   
