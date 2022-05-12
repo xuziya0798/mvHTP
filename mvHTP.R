@@ -153,8 +153,8 @@ mvHTP.Vhat <- function(Y,D,W,pz,s=NULL,intercept=FALSE,OutputRes=TRUE,tuning=30)
   
   # Error check
   if(length(Shat) < q){
-    warning("VHat Warning: No enough relevant IVs estimated. This may be due to weak IVs or identification condition not being met. Use more robust methods.")
-    warning("Defaulting to all IVs being relevant")
+    warning("VHat Warning: No enough relevant IVs estimated. This may be due to weak IVs or identification condition not being met. Use more robust methods.\n")
+    warning("Defaulting to all IVs being relevant.\n")
     Shat = 1:pz
   }
   
@@ -162,7 +162,7 @@ mvHTP.Vhat <- function(Y,D,W,pz,s=NULL,intercept=FALSE,OutputRes=TRUE,tuning=30)
   if(s>length(Shat)-q){
     #s=min(length(Shat)-q, as.integer(length(Shat)/2))
     s=length(Shat)-q
-    warning("s is set too large and use the default value instead \n")
+    warning("s is set too large and use the default value instead. \n")
   } 
   list = HTP(Gammahat[Shat],gammahat[Shat,],s,OutputRes)
   betahat = (list$x)[1:q]
@@ -177,8 +177,8 @@ mvHTP.Vhat <- function(Y,D,W,pz,s=NULL,intercept=FALSE,OutputRes=TRUE,tuning=30)
   
   # Error check
   if(length(Vhat) < q){
-    warning("VHat Warning: No enough valid IVs estimated. This may be due to weak IVs or identification condition not being met. Use more robust methods.")
-    warning("Defaulting to all relevant IVs being valid")
+    warning("VHat Warning: No enough valid IVs estimated. This may be due to weak IVs or identification condition not being met. Use more robust methods.\n")
+    warning("Defaulting to all relevant IVs being valid.\n")
     Vhat = Shat
   }
   
